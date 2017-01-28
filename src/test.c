@@ -7,6 +7,7 @@
 //
 
 #include "preprocessor.h"
+#include "lexer.h"
 
 int main (int argc, const char * argv []) {
 
@@ -18,7 +19,8 @@ int main (int argc, const char * argv []) {
 		strcpy(inname, argv[1]);
 	}
 
-	remove_directives(inname);
+	char *pr_name = remove_directives(inname);
+	emit_tokens(pr_name);
 
 	return 0;
 

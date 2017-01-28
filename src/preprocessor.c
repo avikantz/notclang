@@ -12,11 +12,11 @@
 *	output: file named "pr_<filename>" with preprocessor directives and comments removed.
 */
 
-void remove_directives (char *inname) {
+char *remove_directives (char *inname) {
 
 	FILE *input = fopen(inname, "r");
 
-	char outname[128];
+	char *outname = (char *)malloc(128 * sizeof(char));
 	snprintf(outname, 128, "pr_%s", inname);
 
 	FILE *output = fopen(outname, "w+");
@@ -73,6 +73,8 @@ void remove_directives (char *inname) {
 
 	fclose(input);
 	fclose(output);
+
+	return outname;
 
 }
 

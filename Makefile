@@ -15,7 +15,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-_OBJ = test.o util.o preprocessor.o 
+_OBJ = util.o lexer.o preprocessor.o test.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
@@ -28,4 +28,4 @@ notclang: $(OBJ)
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -f $(ODIR)/*.o *.o $(OBJ)

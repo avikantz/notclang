@@ -1,4 +1,6 @@
 //
+// preprocessor.h
+//
 // Discard preprocessor directives and comments from the file
 //
 // Created by @avikantz on 01/26/17
@@ -13,5 +15,6 @@
 *	remove_directives (char *)
 *	input: <filename>
 *	output: file named "pr_<filename>" with preprocessor directives and comments removed.
+*	return: file name "pr_<filename>"
 */
-void remove_directives (char *);
+char *remove_directives (char *);
