@@ -39,6 +39,15 @@ BOOL isLowerCase (char);
 // Checks if a character is a lowercase
 BOOL isUpperCase (char);
 
+// Checks if a character is a special symbol
+BOOL isSpecialSymbol (char);
+
+// Checks if the character is start of an operator
+BOOL isOperator (char);
+
+// Returns the operator name of the operator, null if not found. E.g. "<=" is "LE" (Less than Equal to), "^" is "BXOR" (Bitwise XOR)
+char *operator_name (char *);
+
 typedef enum token_type {
 	TOKEN_TYPE_INT,
 	TOKEN_TYPE_CHAR,
@@ -60,11 +69,21 @@ typedef struct st_entry {
 	size_t size;
 	token_scope_t scope;
 	int nargs;
-	char return_type[128];
-	struct st_entry *args;
+	char return_type[128];	
+	int args[16]; 			// Assuming no function will have more than 16 args.
 } st_entry_t;
 
 // Retruns a new symbol table entry
-st_entry_t new_symbol_table_entry (int id, char name[128], token_type_t type, size_t size, token_scope_t scope, int nargs, char return_type[128]);
+st_entry_t new_symbol_table_entry (char name[128], token_type_t type, size_t size, token_scope_t scope, int nargs, char return_type[128]);
 
+typedef struct st_node {
+	st_entry_t entry;
+	struct st_node *next;
+} st_node_t, *st_node_p_t;
 
+st_node_p_t init_st_node (st_entry_t);
+
+// Finds a symbol table entry by its name, returns the corresponding element; else inserts it and returns the new element
+st_node_p_t find_or_insert_st (st_node_p_t *, st_entry_t, BOOL *);
+
+void print_symbol_table (st_node_p_t);

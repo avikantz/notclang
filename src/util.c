@@ -41,16 +41,110 @@ BOOL isUpperCase (char ch) {
 	return (ch >= 'A' && ch <= 'Z'); 
 }
 
+const char *SPECIALSYMBOLS = "[]{}(),;:.#";
+
+BOOL isSpecialSymbol (char ch) {
+	return (strchr(SPECIALSYMBOLS, ch) != NULL);
+}
+
+const char *OPERATORS = "+-*/%<>=!&|^~";
+
+BOOL isOperator (char ch) {
+	return (strchr(OPERATORS, ch) != NULL);
+}
+
+const char *OPERATOR_NAMES[52] = {
+	"+", 	"ADD",
+	"-",	"SUB",
+	"*",	"MUL",
+	"/",	"DIV",
+	"%",	"MOD",
+	"+=",	"ADD ASS",
+	"-=",	"SUB ASS",
+	"*=",	"MUL ASS",
+	"/=",	"DIV ASS",
+	"%=",	"MOD ASS",
+	"=",	"ASS",
+	">",	"GT",
+	"<",	"LT",
+	"!",	"NOT",
+	">=",	"GE",
+	"<=",	"LE",
+	"==",	"EQ",
+	"!=",	"NE",
+	"&",	"BAND",
+	"|",	"BOR",
+	"~",	"BNOT",
+	"^",	"BXOR",
+	">>",	"BRS",
+	"<<",	"BLS",
+	"&&",	"LAND",
+	"||",	"LOR"
+};
+
+char *operator_name (char *op) {
+	int i;
+	char *opname = (char *)malloc(10 * sizeof(char));
+	for (i = 0; i < 2 * 26; i += 2) {
+		if (strcmp(OPERATOR_NAMES[i], op) == 0) {
+			strcpy(opname, OPERATOR_NAMES[i+1]);
+			return opname;
+		}
+	}
+	return NULL;
+}
+
 #pragma mark - Symbol table entries
 
-st_entry_t new_symbol_table_entry (int id, char name[128], token_type_t type, size_t size, token_scope_t scope, int nargs, char return_type[128]) {
+st_entry_t new_symbol_table_entry (char name[128], token_type_t type, size_t size, token_scope_t scope, int nargs, char return_type[128]) {
 	st_entry_t entry;
-	entry.id = id;
 	strcpy(entry.name, name);
 	entry.type = type;
 	entry.size = size;
 	entry.scope = scope;
 	entry.nargs = nargs;
-	entry.args = (st_entry_t *)calloc(10, sizeof(st_entry_t));
+	strcpy(entry.return_type, return_type);
 	return entry;
+}
+
+st_node_p_t init_st_node (st_entry_t entry) {
+	st_node_p_t node = (st_node_p_t)malloc(sizeof(st_node_t));
+	node->entry = entry;
+	node->next = NULL;
+	return node;
+}
+
+// Finds a symbol table entry by its name, inserts it otherwise
+st_node_p_t find_or_insert_st (st_node_p_t *head, st_entry_t entry, BOOL *inserted) {
+	if (*head == NULL) {
+		*head = init_st_node(entry);
+		(*head)->entry.id = 1;
+		*inserted = YES;
+		return *head; // Only one node, currently inserted.
+	}
+	int id = 1;
+	st_node_p_t temp = *head;
+	while (temp->next != NULL) {
+		if (strcmp(temp->entry.name, entry.name) == 0) {
+			*inserted = NO;
+			return temp;
+		}
+		temp = temp->next;
+		id = temp->entry.id;
+	}
+	temp->next = init_st_node(entry);
+	temp->next->entry.id = id + 1;
+	*inserted = YES;
+	return temp->next;
+}
+
+
+void print_symbol_table (st_node_p_t head) {
+
+	if (head == NULL) {
+		return;
+	}
+
+	// Finish this...
+
 }
