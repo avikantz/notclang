@@ -32,7 +32,8 @@ char *remove_directives (char *inname) {
 				while (ch != '\n') { 
 					ch = getc(input);
 				}
-				ch = getc(input); // If you want to delete the line too
+				// ch = getc(input); // If you want to delete the line too
+				ungetc(ch, input);
 			} else {
 				putc('#', output);
 				// putc(ch, output);

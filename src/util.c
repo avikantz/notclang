@@ -9,10 +9,10 @@
 #include "util.h"
 
 const char *KEYWORDS[KEYWORD_COUNT] = {
-	"auto", 	"double",	"int",		"struct",	"break",	"else",		"long",		"switch",	
-	"case",		"enum",		"register",	"char",		"typedef",	"extern",	"return",	"union",	
-	"continue",	"for",		"signed",	"void",		"do",		"if",		"static",	"while",	
-	"default",	"goto",		"sizeof",	"volatile",	"const",	"float",	"short",	"unsigned"
+	"void", 	"int",		"char",		"float",	"double",	"long",		"short",	"switch",	
+	"case",		"enum",		"register",	"break",	"typedef",	"extern",	"return",	"union",	
+	"continue",	"for",		"signed",	"auto",		"do",		"if",		"else",		"while",	
+	"default",	"goto",		"sizeof",	"volatile",	"const",	"float",	"static",	"unsigned"
 };
 
 #pragma mark - Utility functions
@@ -94,6 +94,29 @@ char *operator_name (char *op) {
 	return NULL;
 }
 
+token_type_t get_token_type (char *keyword) {
+	int i = 0;
+	for (i = 0; i < KEYWORD_COUNT; ++i) {
+		if (strcmp(keyword, KEYWORDS[i]) == 0) {
+			return i;
+		}
+	}
+	return TOKEN_TYPE_ID;
+}
+
+size_t get_token_size (token_type_t type) {
+	switch (type) {
+		case TOKEN_TYPE_INT: 
+		case TOKEN_TYPE_FLOAT: return 4;
+		case TOKEN_TYPE_CHAR: return 1;
+		case TOKEN_TYPE_SHORT: return 2;
+		case TOKEN_TYPE_LONG: 
+		case TOKEN_TYPE_DOUBLE: return 8;
+		case TOKEN_TYPE_VOID: return 0;
+		default: return 0;
+	}
+}
+
 #pragma mark - Symbol table entries
 
 st_entry_t new_symbol_table_entry (char name[128], token_type_t type, size_t size, token_scope_t scope, int nargs, char return_type[128]) {
@@ -132,10 +155,32 @@ st_node_p_t find_or_insert_st (st_node_p_t *head, st_entry_t entry, BOOL *insert
 		temp = temp->next;
 		id = temp->entry.id;
 	}
+	if (strcmp(temp->entry.name, entry.name) == 0) {
+		*inserted = NO;
+		return temp;
+	}
 	temp->next = init_st_node(entry);
 	temp->next->entry.id = id + 1;
 	*inserted = YES;
 	return temp->next;
+}
+
+// Finds a symbol table entry by its name, inserts it otherwise
+st_node_p_t find_in_st (st_node_p_t *head, st_entry_t entry) {
+	if (*head == NULL) {
+		return NULL;
+	}
+	st_node_p_t temp = *head;
+	while (temp->next != NULL) {
+		if (strcmp(temp->entry.name, entry.name) == 0) {
+			return temp;
+		}
+		temp = temp->next;
+	}
+	if (strcmp(temp->entry.name, entry.name) == 0) {
+		return temp;
+	}
+	return NULL;
 }
 
 
@@ -147,4 +192,70 @@ void print_symbol_table (st_node_p_t head) {
 
 	// Finish this...
 
+	printf("------------------------------------------------------------\n");
+	printf("---------------------- SYMBOL TABLE ------------------------\n");
+	printf("------------------------------------------------------------\n");
+
+	printf("ID \t| TYPE \t| SIZE\t| SCOPE\t| NARGS\t| RET \t| ARGS \t| NAME\n");
+
+	st_node_p_t temp = head;
+	while (temp != NULL) {
+
+		st_entry_t entry = temp->entry;
+
+		printf("%d \t| ", entry.id);
+		printf("%d \t| ", entry.type);
+		printf("%ld \t| ", entry.size);
+		printf("%d \t| ", entry.scope);
+		printf("%d \t| ", entry.nargs);
+		printf("%s \t| ", entry.return_type);
+		printf("{ } \t| ");
+		printf("\"%s\" \n", entry.name);
+
+		temp = temp->next;
+
+	}
+
+	printf("------------------------------------------------------------\n");
+
 }
+
+
+
+#pragma mark - Token buffer
+
+tnode_p_t init_tnode (char *name) {
+	tnode_p_t node = (tnode_p_t)malloc(sizeof(tnode_t));
+	strcpy(node->name, name);
+	node->next = node;
+	node->prev = node;
+	return node;
+}
+
+// Insert a arbritary token to the token DLL
+tnode_p_t insert_token (tnode_p_t *head, char *token) {
+	if (*head == NULL) {
+		*head = init_tnode(token);
+		return *head;
+	}
+	tnode_p_t root = *head;
+	tnode_p_t temp = init_tnode(token);
+	temp->next = root;
+	temp->prev = root->prev;
+	root->prev = temp;
+	root->prev->next = temp;
+	return temp;
+}
+
+// Print the token buffer list.
+void print_token_buffer (tnode_p_t head) {
+	printf("Token buffer stack: ");
+	tnode_p_t temp = head->prev;
+	while (temp->prev != head) {
+		printf("%s <-> ", temp->name);
+		temp = temp->prev;
+	}
+	printf("%s", temp->name);
+	printf("\n\n");
+}
+

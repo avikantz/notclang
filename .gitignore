@@ -1,0 +1,6 @@
+notclang
+temp.c
+pr_temp.c
+tok_pr_temp.c
+src/*.o
+*.o

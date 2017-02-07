@@ -48,14 +48,22 @@ BOOL isOperator (char);
 // Returns the operator name of the operator, null if not found. E.g. "<=" is "LE" (Less than Equal to), "^" is "BXOR" (Bitwise XOR)
 char *operator_name (char *);
 
+#pragma mark - Symbol table
+
 typedef enum token_type {
+	TOKEN_TYPE_VOID,
 	TOKEN_TYPE_INT,
 	TOKEN_TYPE_CHAR,
 	TOKEN_TYPE_FLOAT,
 	TOKEN_TYPE_DOUBLE,
-	TOKEN_TYPE_ID,
-	TOKEN_TYPE_FUNC
+	TOKEN_TYPE_LONG,
+	TOKEN_TYPE_SHORT,
+	TOKEN_TYPE_ID = 99,
 } token_type_t;
+
+token_type_t get_token_type(char *);
+
+size_t get_token_size(token_type_t);
 
 typedef enum token_scope {
 	TOKEN_SCOPE_LOCAL,
@@ -85,5 +93,19 @@ st_node_p_t init_st_node (st_entry_t);
 
 // Finds a symbol table entry by its name, returns the corresponding element; else inserts it and returns the new element
 st_node_p_t find_or_insert_st (st_node_p_t *, st_entry_t, BOOL *);
+st_node_p_t find_in_st (st_node_p_t *, st_entry_t);
 
 void print_symbol_table (st_node_p_t);
+
+#pragma mark - Token buffer
+
+typedef struct tnode {
+	char name[128];
+	struct tnode *next;
+	struct tnode *prev;
+} tnode_t, *tnode_p_t;
+
+tnode_p_t init_tnode (char *);
+tnode_p_t insert_token (tnode_p_t *, char *);
+
+void print_token_buffer (tnode_p_t);
