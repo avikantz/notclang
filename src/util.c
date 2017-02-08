@@ -104,6 +104,14 @@ token_type_t get_token_type (char *keyword) {
 	return TOKEN_TYPE_ID;
 }
 
+const char * get_token_type_string (token_type_t type) {
+	if (type == TOKEN_TYPE_FUNC)
+		return "FUNC";
+	if (type <= TOKEN_TYPE_SHORT)
+		return KEYWORDS[type];
+	return "-";
+}
+
 size_t get_token_size (token_type_t type) {
 	switch (type) {
 		case TOKEN_TYPE_INT: 
@@ -148,21 +156,26 @@ st_node_p_t find_or_insert_st (st_node_p_t *head, st_entry_t entry, BOOL *insert
 	int id = 1;
 	st_node_p_t temp = *head;
 	while (temp->next != NULL) {
-		if (strcmp(temp->entry.name, entry.name) == 0) {
+		if (strcmp(temp->entry.name, entry.name) == 0 /*&& temp->entry.scope == entry.scope*/) {
 			*inserted = NO;
 			return temp;
 		}
 		temp = temp->next;
 		id = temp->entry.id;
 	}
-	if (strcmp(temp->entry.name, entry.name) == 0) {
+	if (strcmp(temp->entry.name, entry.name) == 0 /*&& temp->entry.scope == entry.scope*/) {
 		*inserted = NO;
 		return temp;
 	}
-	temp->next = init_st_node(entry);
-	temp->next->entry.id = id + 1;
-	*inserted = YES;
-	return temp->next;
+	if (id > 0) {
+		temp->next = init_st_node(entry);
+		temp->next->entry.id = id + 1;
+		*inserted = YES;
+		return temp->next;
+	} else {
+		*inserted = NO;
+		return NULL;
+	}
 }
 
 // Finds a symbol table entry by its name, inserts it otherwise
@@ -172,17 +185,16 @@ st_node_p_t find_in_st (st_node_p_t *head, st_entry_t entry) {
 	}
 	st_node_p_t temp = *head;
 	while (temp->next != NULL) {
-		if (strcmp(temp->entry.name, entry.name) == 0) {
+		if (strcmp(temp->entry.name, entry.name) == 0  /*&& temp->entry.scope == entry.scope*/) {
 			return temp;
 		}
 		temp = temp->next;
 	}
-	if (strcmp(temp->entry.name, entry.name) == 0) {
+	if (strcmp(temp->entry.name, entry.name) == 0  /*&& temp->entry.scope == entry.scope*/) {
 		return temp;
 	}
 	return NULL;
 }
-
 
 void print_symbol_table (st_node_p_t head) {
 
@@ -192,11 +204,11 @@ void print_symbol_table (st_node_p_t head) {
 
 	// Finish this...
 
-	printf("------------------------------------------------------------\n");
+	printf("\n------------------------------------------------------------\n");
 	printf("---------------------- SYMBOL TABLE ------------------------\n");
 	printf("------------------------------------------------------------\n");
 
-	printf("ID \t| TYPE \t| SIZE\t| SCOPE\t| NARGS\t| RET \t| ARGS \t| NAME\n");
+	printf("ID \t| TYPE \t\t| SIZE\t| SCOPE\t| NARGS\t| RET \t| ARGS \t| NAME\n");
 
 	st_node_p_t temp = head;
 	while (temp != NULL) {
@@ -204,12 +216,18 @@ void print_symbol_table (st_node_p_t head) {
 		st_entry_t entry = temp->entry;
 
 		printf("%d \t| ", entry.id);
-		printf("%d \t| ", entry.type);
+		printf("%8s %d \t| ", get_token_type_string(entry.type), entry.type);
 		printf("%ld \t| ", entry.size);
-		printf("%d \t| ", entry.scope);
+		printf("%c \t| ", (entry.scope == TOKEN_SCOPE_LOCAL) ? 'L' : 'G');
 		printf("%d \t| ", entry.nargs);
 		printf("%s \t| ", entry.return_type);
-		printf("{ } \t| ");
+		printf("{ ");
+		for (int i = 0; i < 16; ++i) {
+			if (entry.args[i] == 1) {
+				printf("%d ", i);
+			}
+		}
+		printf("} \t| ");
 		printf("\"%s\" \n", entry.name);
 
 		temp = temp->next;

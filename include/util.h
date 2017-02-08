@@ -58,10 +58,12 @@ typedef enum token_type {
 	TOKEN_TYPE_DOUBLE,
 	TOKEN_TYPE_LONG,
 	TOKEN_TYPE_SHORT,
+	TOKEN_TYPE_FUNC = 89,
 	TOKEN_TYPE_ID = 99,
 } token_type_t;
 
 token_type_t get_token_type(char *);
+const char * get_token_type_string (token_type_t);
 
 size_t get_token_size(token_type_t);
 
